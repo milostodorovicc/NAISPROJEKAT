@@ -31,6 +31,7 @@ import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilde
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregations;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -47,24 +48,29 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ProductServiceImpl {
+public class ProductServiceImpl implements ProductService {
 
     ElasticsearchOperations elasticsearchOperations;
 
 
     private final ProductRepository productRepository;
 
+    @Autowired
     public ProductServiceImpl(ProductRepository productRepository,ElasticsearchOperations elasticsearchOperations) {
 
         this.productRepository = productRepository;
         this.elasticsearchOperations = elasticsearchOperations;
 
 
+
     }
 
 
-    public void save(Product product) {
-        productRepository.save(product);
+    public Product save(Product product) {
+
+
+        Product product1 = productRepository.save(product);
+        return product1;
     }
 
 
@@ -215,6 +221,8 @@ public class ProductServiceImpl {
                             .terms(ta -> ta.field("product_color").size(10).minDocCount(2))))
                     .build();
 
+            query.setMaxResults(10000);
+
             SearchHits<Product> searchHits = elasticsearchOperations.search(query, Product.class);
             List<Product> products = searchHits.getSearchHits()
                     .stream()
@@ -243,6 +251,8 @@ public class ProductServiceImpl {
            {
                System.out.println(sr.getColor()+sr.getCount());
            }
+            int count = products.size();
+            System.out.println(count);
 
            return productSearchResult;
     }
@@ -251,7 +261,7 @@ public class ProductServiceImpl {
 
 
 
-    public void complexquery2(String productmaterial,String brandname) throws IOException {
+    public ProductSearchResult complexquery2(String productmaterial,String brandname) throws IOException {
 
         System.out.println(productmaterial+brandname);
 
@@ -276,12 +286,29 @@ public class ProductServiceImpl {
                         .terms(ta -> ta.field("product_season").size(10).minDocCount(2))))
                 .build();
 
+        query.setMaxResults(10000);
+
         SearchHits<Product> searchHits = elasticsearchOperations.search(query, Product.class);
+
+        List<Product> products = searchHits.getSearchHits()
+                .stream()
+                .map(SearchHit::getContent)
+                .collect(Collectors.toList());
+
+
+
+
+
         ElasticsearchAggregations aggregations = (ElasticsearchAggregations) searchHits.getAggregations();
         assert aggregations != null;
         List<StringTermsBucket> buckets = aggregations.aggregationsAsMap().get("productseason").aggregation().getAggregate().sterms().buckets().array();
 
         List<SearchResult> result = new ArrayList<>();
+
+
+
+        ProductSearchResult productSearchResult = new ProductSearchResult();
+        productSearchResult.setProducts(products);
 
         buckets.forEach(stringTermsBucket -> result.add(
                 SearchResult.builder()
@@ -294,6 +321,14 @@ public class ProductServiceImpl {
         {
             System.out.println(sr.getColor()+sr.getCount());
         }
+
+
+
+        productSearchResult.setAgregacije(result);
+
+
+
+        return productSearchResult;
 
     }
 

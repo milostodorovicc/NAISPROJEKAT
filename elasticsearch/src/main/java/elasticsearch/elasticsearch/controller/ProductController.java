@@ -3,7 +3,9 @@ package elasticsearch.elasticsearch.controller;
 import elasticsearch.elasticsearch.model.Product;
 import elasticsearch.elasticsearch.model.ProductSearchResult;
 import elasticsearch.elasticsearch.model.SearchResult;
+import elasticsearch.elasticsearch.service.ProductService;
 import elasticsearch.elasticsearch.service.ProductServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -15,21 +17,27 @@ import java.util.List;
 @RequestMapping("/api/products")
 public class ProductController {
 
-    private final ProductServiceImpl productServiceImpl;
+    private final ProductService productService;
 
-    public ProductController(ProductServiceImpl productServiceImpl) {
-        this.productServiceImpl = productServiceImpl;
+    @Autowired
+    public ProductController(ProductService productService) {
+        this.productService = productService;
     }
 
     @PostMapping
-    public void addProduct(@RequestBody Product product) {
-        productServiceImpl.save(product);
+    public Product addProduct(@RequestBody Product product) {
+
+
+
+
+        Product product1 = productService.save(product);
+        return product1;
     }
 
 
     @GetMapping("/pronadjipoid/{id1}")
     public Product readProduct(@PathVariable String id1) {
-        Product product = productServiceImpl.read(id1);
+        Product product = productService.read(id1);
         return product;
 
     }
@@ -37,7 +45,7 @@ public class ProductController {
 
     @PostMapping(value="/searchtype")
     public Product searchProduct(@RequestParam("type") String type) {
-        Product product = productServiceImpl.searchproducttype(type);
+        Product product = productService.searchproducttype(type);
         return product;
 
     }
@@ -46,7 +54,7 @@ public class ProductController {
 
     @PostMapping(value="/update")
     public Product updateProduct(@RequestBody Product product) {
-       Product product1 = productServiceImpl.update(product);
+       Product product1 = productService.update(product);
        return product1;
     }
 
@@ -54,7 +62,7 @@ public class ProductController {
 
     @PostMapping(value="/delete/{id1}")
     public void deleteProduct(@PathVariable String id1) {
-        String deleted =  productServiceImpl.delete(id1);
+        String deleted =  productService.delete(id1);
 
     }
 
@@ -62,7 +70,7 @@ public class ProductController {
 
     @PostMapping("/complexquery1")
     public ProductSearchResult complexquery1(@RequestParam("producttype") String producttype,@RequestParam("minprice") String minprice,@RequestParam("maxprice") String maxprice) throws IOException {
-        ProductSearchResult productSearchResult = productServiceImpl.complexquery1(producttype,minprice,maxprice);
+        ProductSearchResult productSearchResult = productService.complexquery1(producttype,minprice,maxprice);
         return productSearchResult;
 
 
@@ -72,8 +80,9 @@ public class ProductController {
 
 
     @PostMapping("/complexquery2")
-    public void complexquery2(@RequestParam("productmaterial") String productmaterial,@RequestParam("brandname") String brandname) throws IOException {
-        productServiceImpl.complexquery2(productmaterial,brandname);
+    public ProductSearchResult complexquery2(@RequestParam("productmaterial") String productmaterial,@RequestParam("brandname") String brandname) throws IOException {
+        ProductSearchResult productSearchResult = productService.complexquery2(productmaterial,brandname);
+        return productSearchResult;
 
 
 
@@ -84,7 +93,7 @@ public class ProductController {
 
     @PostMapping("/findbylikecount")
     public List<Product> findbylikecount(@RequestParam("minlikecount") String minlikecount,@RequestParam("maxlikecount") String maxlikecount) throws IOException {
-      List<Product> products =  productServiceImpl.findbylikecount(minlikecount,maxlikecount);
+      List<Product> products =  productService.findbylikecount(minlikecount,maxlikecount);
 
 
       return products;
@@ -94,7 +103,7 @@ public class ProductController {
 
     @PostMapping("/findbycountryandavailable")
     public List<Product> findbycountryandavailable(@RequestParam("country") String country) throws IOException {
-        List<Product> products =  productServiceImpl.findbycountryandavailable(country);
+        List<Product> products =  productService.findbycountryandavailable(country);
 
 
         return products;
@@ -105,7 +114,7 @@ public class ProductController {
 
     @PostMapping("/generisizivestaj")
     public byte[] findbycountryandavailable(@RequestParam("minlikecount") String minlikecount,@RequestParam("maxlikecount") String maxlikecount,@RequestParam("country") String country,@RequestParam("producttype") String producttype,@RequestParam("minprice") String minprice,@RequestParam("maxprice") String maxprice) throws IOException {
-        byte[] izvestaj =  productServiceImpl.generisiizvestaj(minlikecount,maxlikecount,country,producttype,minprice,maxprice);
+        byte[] izvestaj =  productService.generisiizvestaj(minlikecount,maxlikecount,country,producttype,minprice,maxprice);
 
 
         return izvestaj;
